@@ -1,0 +1,15 @@
+trigger:
+
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.8'
+  displayName: 'Install Python'
+- script: |
+    python --version
+  displayName: 'Check Python Version'
