@@ -1,28 +1,31 @@
-trigger:
-- '*'  # Triggers the pipeline for any branch. Use 'master' for master branch only.
+# Define variables that will be used throughout the pipeline
+variables:
 
-pool:
-  vmImage: 'ubuntu-latest'
+  message: 'Hello, again from Stage 2!'
+  isRunSecondJob: true  # Conditionally run the second job in each stage
 
-steps:
-- checkout: self  # Equivalent to "actions/checkout@v2" in GitHub Actions
+# First Stage: Build
+stages:
 
-- task: UsePythonVersion@0  # Set up Python 3.8
-  inputs:
-    versionSpec: '3.8'
-  displayName: 'Set up Python 3.8'
+- stage: Build
+  jobs:
+  - job: Compile
+    steps:
+    - script: echo "Compiling code..."
 
-- script: |  # Install dependencies
-    python -m pip install --upgrade pip
-    pip install pipenv
-    pipenv --python 3.8
-    pipenv install nose pylint --dev
-  displayName: 'Install dependencies'
+  - job: UnitTest
+    condition: eq(variables.isRunSecondJob, true)
+    steps:
+    - script: echo "Running unit tests..."
 
-- script: |  # Lint with pylint
-    pipenv run pylint app
-  displayName: 'Lint with pylint'
+- stage: Deploy
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - job: Print
+    steps:
+    - script: echo $(message)
 
-- script: |  # Test with nose
-    pipenv run nosetests
-  displayName: 'Test with nose'
+  - job: DeployToQA
+    steps:
+    - script: echo "Deploying to QA environment..."
